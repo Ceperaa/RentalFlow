@@ -1,0 +1,269 @@
+/* ================
+   BASE STYLES
+   ================ */
+body {
+    background-color: #ffffff;
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    color: #1b5e20;
+}
+
+.desktop-wrapper {
+    width: 1440px;
+    background: #ffffff;
+    position: relative;
+    overflow-x: hidden;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.05);
+}
+
+/* Custom Scroll */
+.chat-area::-webkit-scrollbar {
+    width: 5px;
+}
+.chat-area::-webkit-scrollbar-thumb {
+    background-color: #9fc0e8;
+    border-radius: 4px;
+}
+
+/* Hover effect */
+.feature-card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(73, 138, 41, 0.15);
+    border-color: #1b5e20;
+}
+
+/* HEADER */
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #c5d8f0;
+    transition: all 0.3s ease;
+}
+
+.header-container {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 70px;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2e7d32;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.logo-icon {
+    width: 2rem;
+    height: 2rem;
+    background: #2e7d32;
+    border-radius: .5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+nav ul {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+}
+
+nav a {
+    text-decoration: none;
+    color: #247c2a;
+    font-weight: 500;
+    transition: .3s;
+    position: relative;
+}
+
+nav a:hover {
+    color: #2e7d32;
+}
+
+nav a::after {
+    content: "";
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    height: 2px;
+    width: 0;
+    background: #2e7d32;
+    transition: .3s;
+}
+
+nav a:hover::after {
+    width: 100%;
+}
+
+.menu-toggle {
+    display: none;
+    font-size: 2rem;
+    cursor: pointer;
+}
+
+/* -----------------------------------------
+   MOBILE & TABLETS — MAIN ADAPTATION
+   ----------------------------------------- */
+
+@media (max-width: 1280px) {
+
+    body {
+        justify-content: flex-start;
+    }
+
+    .desktop-wrapper {
+        width: 100%;
+        box-shadow: none;
+    }
+
+    .header-container {
+        padding: 0 2rem;
+    }
+
+    /* HERO section */
+    #home {
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+        flex-direction: column !important;
+        text-align: center;
+    }
+
+    #home > div {
+        flex-direction: column !important;
+    }
+
+    #home h1 {
+        font-size: 2.8rem !important;
+    }
+
+    #home .w-5/12,
+#home .w-7/12 {
+    width: 100% !important;
+}
+
+    #home img {
+        margin-top: 2rem;
+    }
+
+    /* Floating chart correction */
+    #home .absolute {
+        position: static !important;
+        margin-top: 2rem;
+    }
+}
+
+
+/* Tablets */
+@media (max-width: 992px) {
+
+    .header-container {
+        padding: 0 1.5rem;
+    }
+
+    nav {
+        position: absolute;
+        top: 70px;
+        left: 0;
+        right: 0;
+        background: white;
+        box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        transform: translateY(-20px);
+        opacity: 0;
+        visibility: hidden;
+        transition: 0.3s;
+    }
+
+    nav.active {
+        transform: translateY(0);
+        opacity: 1;
+        visibility: visible;
+    }
+
+    nav ul {
+        flex-direction: column;
+        padding: 1rem;
+        text-align: center;
+    }
+
+    nav li {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+
+    /* Presentation floating windows */
+    #product-presentation .absolute {
+        position: static !important;
+        transform: none !important;
+        opacity: 1 !important;
+        animation: none !important;
+        margin-bottom: 2rem;
+        width: 100% !important;
+    }
+
+    #product-presentation img {
+        width: 100%;
+    }
+}
+
+
+/* Phones */
+@media (max-width: 600px) {
+
+    #home {
+        padding-top: 6rem !important;
+    }
+
+    #home h1 {
+        font-size: 2rem !important;
+    }
+
+    #home p {
+        font-size: 1rem !important;
+    }
+
+    .header-container {
+        padding: 0 1rem;
+    }
+
+    nav a {
+        font-size: 1.2rem;
+    }
+
+    /* Buttons */
+    #home button {
+        width: 100%;
+        text-align: center;
+    }
+
+    #home .flex.gap-4 {
+        flex-direction: column;
+    }
+
+    /* Product section */
+    #product {
+        padding: 1rem !important;
+    }
+
+    /* Presentation preview */
+    #product-presentation {
+        padding: 2rem 1rem !important;
+    }
+}
