@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RentalFlow - Учет проката оборудования</title>
+
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+
+    <!-- Swiper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#e8f5e9',
+                            100: '#c8e6c9',
+                            200: '#a5d6a7',
+                            300: '#81c784',
+                            400: '#66bb6a',
+                            500: '#4CAF50', // Основной синий
+                            600: '#43a047',
+                            700: '#388e3c',
+                            800: '#2e7d32',
+                            900: '#1b5e20',
+                        },
+                        accent: {
+                            500: '#4CAF50', // Акцентный зеленый
+                        }
+                    },
+                    boxShadow: {
+                        'blue-glow': '0 10px 30px -10px rgba(42, 91, 140, 0.5)',
+                        'card': '0 4px 20px rgba(0, 0, 0, 0.05)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+
+    <style>
+        body {
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            margin: 0;
+            color: #1b5e20; /* Primary 900 */
+            scroll-behavior: smooth;
+        }
+        .desktop-wrapper {
+            width: 1440px;
+            background: #ffffff;
+            position: relative;
+            overflow-x: hidden;
+            box-shadow: 0 0 40px rgba(0,0,0,0.05);
+        }
+
+        /* Custom Scrollbar for Chat */
+        .chat-area::-webkit-scrollbar {
+            width: 5px;
+        }
+        .chat-area::-webkit-scrollbar-thumb {
+            background-color: #9fc0e8; /* Primary 200 */
+            border-radius: 4px;
+        }
+
+        .feature-card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(73, 138, 41, 0.15);
+            border-color: #1b5e20;
+        }
+
+        /* Header styles */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #c5d8f0;
+            transition: all 0.3s ease;
+        }
+
+        .header-container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 0 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2e7d32;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-icon {
+            width: 2rem;
+            height: 2rem;
+            background: #2e7d32;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #247c2a;
+            font-weight: 500;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        nav a:hover {
+            color: #2e7d32;
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #2e7d32;
+            transition: width 0.3s;
+        }
+
+        nav a:hover::after {
+            width: 100%;
+        }
+
+        .menu-toggle {
+            display: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .header-container {
+                padding: 0 1.5rem;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            nav {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+                transform: translateY(-10px);
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.3s;
+            }
+
+            nav.active {
+                transform: translateY(0);
+                opacity: 1;
+                visibility: visible;
+            }
+
+            nav ul {
+                flex-direction: column;
+                padding: 1rem;
+                gap: 0;
+            }
+
+            nav li {
+                padding: 0.75rem 0;
+                border-bottom: 1px solid #f0f0f0;
+            }
+
+            nav li:last-child {
+                border-bottom: none;
+            }
+        }
+
+        /* Section padding adjustment for fixed header */
+        section {
+            scroll-margin-top: 70px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="desktop-wrapper">
+
+    <!-- Fixed Header -->
+    <header>
+        <div class="header-container">
+            <div class="logo" onclick="scrollToTop()">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-cogs"></i>
+                </div>
+                <span>RentalFlow</span>
+            </div>
+
+            <div class="menu-toggle" onclick="toggleMenu()">&#9776;</div>
+
+            <nav id="main-nav">
+                <ul>
+                    <li><a href="#home" onclick="closeMenu()">Главная</a></li>
+                    <li><a href="#product" onclick="closeMenu()">О программе</a></li>
+                    <li><a href="#pricing" onclick="closeMenu()">Тарифы</a></li>
+                    <li><a href="#contacts" onclick="closeMenu()">Контакты</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="px-16 pt-32 pb-28 relative overflow-hidden bg-gradient-to-br from-primary-50 via-white to-primary-50">
+        <!-- Background patterns -->
+        <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-primary-100 rounded-full blur-3xl opacity-40 -translate-y-1/4 translate-x-1/4"></div>
+
+        <div class="flex items-center gap-12 relative z-10">
+            <div class="w-5/12 space-y-8">
+                <div class="inline-flex items-center gap-2 text-primary-700 bg-primary-100 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide">
+                    <i class="fa-brands fa-windows"></i> Для Windows 10/11
+                </div>
+                <h1 class="text-5xl font-extrabold leading-tight text-primary-900">
+                    Учет проката оборудования <br>
+                    <span class="text-primary-500">без лишних таблиц</span>
+                </h1>
+                <p class="text-lg text-gray-600 leading-relaxed">
+                    Автоматизируйте аренду строительной техники, инструментов и оборудования. Следите за состоянием техники и получайте отчеты о выручке в пару кликов.
+                </p>
+
+                <div class="flex gap-4">
+                    <button class="bg-accent-500 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-blue-glow hover:bg-green-600 transition flex items-center gap-3">
+                        <i class="fa-solid fa-download"></i> Скачать демо
+                    </button>
+                    <button class="px-8 py-4 rounded-xl font-bold text-primary-700 border-2 border-primary-200 hover:border-primary-500 hover:bg-primary-50 transition">
+                        Узнать больше
+                    </button>
+                </div>
+
+                <div class="pt-6 border-t border-primary-200 flex gap-8">
+                    <div>
+                        <div class="text-2xl font-bold text-primary-800">5 мин</div>
+                        <div class="text-sm text-gray-500">На настройку</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-primary-800">AI</div>
+                        <div class="text-sm text-gray-500">Умный поиск</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-primary-800">Offline</div>
+                        <div class="text-sm text-gray-500">Работа без интернета</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Image (Laptop/Interface mockup) -->
+            <div class="w-7/12 relative">
+                <div class="bg-white p-2 rounded-xl shadow-2xl border border-primary-100">
+                    <div class="bg-gray-800 rounded-lg p-4 text-white font-mono text-sm">
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="text-lg font-bold">RentalFlow - Учет проката</div>
+                            <div class="flex gap-2">
+                                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                                <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="bg-gray-700 p-3 rounded">
+                                <div class="text-xs text-gray-400 mb-1">Активные заказы</div>
+                                <div class="text-xl font-bold">12</div>
+                            </div>
+                            <div class="bg-gray-700 p-3 rounded">
+                                <div class="text-xs text-gray-400 mb-1">Доход за месяц</div>
+                                <div class="text-xl font-bold">84,500₽</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-900 p-3 rounded text-xs">
+                            <div class="flex justify-between mb-2">
+                                <span class="text-gray-400">Инструмент</span>
+                                <span class="text-gray-400">Статус</span>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span>Мотобур ECO GD-S3</span>
+                                    <span class="text-green-400">Готов</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Насос SKIPER WG8-1.5X</span>
+                                    <span class="text-yellow-400">В прокате</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Нивелир BOSCH PLL 360</span>
+                                    <span class="text-green-400">Готов</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Floating Element: Profit Chart -->
+                    <div class="absolute -bottom-8 -left-8 bg-white p-6 rounded-xl shadow-xl border border-primary-50 w-72">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-bold text-gray-700">Выручка (Июль)</span>
+                            <span class="text-accent-500 font-bold text-sm">+24% <i class="fa-solid fa-arrow-trend-up"></i></span>
+                        </div>
+                        <div id="revenueChart" style="width: 100%; height: 80px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================= -->
+    <!--   PRODUCT PRESENTATION (PRO) -->
+    <!-- ============================= -->
+
+    <section id="product-presentation" class="relative px-12 py-32 overflow-hidden bg-gradient-to-b from-gray-50 to-white">
+
+        <!-- Section title -->
+        <div class="text-center max-w-3xl mx-auto mb-20">
+            <h2 class="text-3xl font-bold text-primary-900 mb-4">Интерфейс, созданный для скорости работы</h2>
+            <p class="text-gray-600">Вся мощь настольного приложения — в современном, быстром и удобном дизайне</p>
+        </div>
+
+        <!-- MAIN SCREEN -->
+        <div class="relative max-w-6xl mx-auto rounded-2xl shadow-2xl border border-gray-200 overflow-hidden scale-100 hover:scale-[1.01] transition-all duration-700 ease-out">
+            <img src="1.png" class="w-full object-cover">
+        </div>
+
+        <!-- Floating Window #1 -->
+        <div class="absolute left-[60%] top-[55%] -translate-x-1/2 -translate-y-1/2
+						w-[520px] rounded-xl overflow-hidden shadow-2xl border-2 border-green-600 bg-white
+						opacity-0 animate-[floatIn_1s_ease-out_0.2s_forwards]">
+            <img src="2.png" class="w-full">
+        </div>
+
+        <!-- Floating Window #2 -->
+        <div class="absolute left-[18%] top-[30%] -translate-x-1/2 -translate-y-1/2 w-[320px]
+						bg-white border border-gray-300 rounded-xl shadow-xl overflow-hidden p-4
+						opacity-0 animate-[floatIn_1s_ease-out_0.4s_forwards]">
+
+            <h3 class="font-bold text-gray-800 text-lg mb-3 flex items-center gap-2">
+                <span class="w-3 h-3 bg-green-600 rounded-full"></span>
+                Поиск клиентов
+            </h3>
+            <p class="text-sm text-gray-600 leading-relaxed">
+                Быстрое определение клиента по имени, телефону или паспорту.
+                Умный поиск — как в системах корпоративного уровня.
+            </p>
+        </div>
+
+        <!-- Floating Window #3 -->
+        <div class="absolute left-[75%] top-[28%] -translate-x-1/2 -translate-y-1/2 w-[360px]
+						bg-white border border-gray-300 rounded-xl shadow-xl overflow-hidden p-4
+						opacity-0 animate-[floatIn_1s_ease-out_0.6s_forwards]">
+
+            <div class="bg-green-600 text-white px-4 py-2 font-semibold text-sm rounded-md mb-3">
+                Контроль инструмента
+            </div>
+            <p class="text-sm text-gray-600 leading-relaxed">
+                Статусы техники, пробег, ТО, история прокатов — всё обновляется автоматически.
+            </p>
+        </div>
+
+        <!-- Floating Window #4 -->
+        <div class="absolute left-[50%] top-[85%] -translate-x-1/2 -translate-y-1/2 w-[420px]
+						bg-white border border-gray-300 rounded-xl shadow-xl p-5
+						opacity-0 animate-[floatIn_1s_ease-out_0.8s_forwards]">
+
+            <h3 class="font-bold text-gray-800 text-xl mb-2">
+                Оформление заказа за 15 секунд
+            </h3>
+            <p class="text-sm text-gray-600">
+                Добавление инструмента, расчёт суммы, скидки, долг, печать договора —
+                интерфейс оптимизирован под высокую скорость работы.
+            </p>
+        </div>
+
+    </section>
+
+    <!-- Features Block (About Product) -->
+    <section id="product" class="px-16 py-24 bg-white">
+        <div class="text-center max-w-3xl mx-auto mb-20">
+            <h2 class="text-3xl font-bold text-primary-900 mb-4">Возможности RentalFlow</h2>
+            <p class="text-gray-600">Мы объединили учет оборудования, CRM и аналитику в одном приложении, чтобы вы могли сосредоточиться на развитии бизнеса.</p>
+        </div>
+
+        <div class="grid grid-cols-3 gap-8">
+            <!-- Feature 1: Orders -->
+            <div class="bg-primary-50 rounded-2xl p-8 border border-primary-100 feature-card-hover transition duration-300 col-span-2">
+                <div class="w-12 h-12 bg-primary-200 rounded-full flex items-center justify-center text-primary-800 text-xl mb-6">
+                    <i class="fa-solid fa-list-check"></i>
+                </div>
+                <h3 class="text-xl font-bold text-primary-900 mb-3">Учет заказов и клиентов</h3>
+                <div class="flex gap-8">
+                    <div class="w-1/2 text-gray-600 text-sm leading-relaxed">
+                        Полный контроль цикла сделки: от бронирования до возврата.
+                        <ul class="mt-3 space-y-2">
+                            <li><i class="fa-solid fa-check text-primary-500 mr-2"></i>Генерация договоров за 1 сек</li>
+                            <li><i class="fa-solid fa-check text-primary-500 mr-2"></i>Топ клиентов и черный список</li>
+                            <li><i class="fa-solid fa-check text-primary-500 mr-2"></i>Расчет просрочек и штрафов</li>
+                        </ul>
+                    </div>
+                    <div class="w-1/2 bg-white rounded-lg p-4 shadow-inner border border-primary-100">
+                        <!-- Mock UI list -->
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between p-2 bg-primary-50 rounded hover:bg-primary-100 cursor-pointer transition">
+                                <span class="text-xs font-bold text-primary-900">#432 | Мотобур</span>
+                                <span class="px-2 py-0.5 bg-green-200 text-green-800 text-[10px] rounded-full">В прокате</span>
+                            </div>
+                            <div class="flex items-center justify-between p-2 bg-white border border-gray-100 rounded opacity-60">
+                                <span class="text-xs font-bold text-gray-500">#431 | Насос</span>
+                                <span class="px-2 py-0.5 bg-gray-200 text-gray-600 text-[10px] rounded-full">Завершен</span>
+                            </div>
+                            <div class="flex items-center justify-between p-2 bg-white border border-gray-100 rounded opacity-60">
+                                <span class="text-xs font-bold text-gray-500">#430 | Нивелир</span>
+                                <span class="px-2 py-0.5 bg-yellow-200 text-yellow-800 text-[10px] rounded-full">Бронь</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature 2: Tech Units -->
+            <div class="bg-white rounded-2xl p-8 border border-primary-100 feature-card-hover transition duration-300 shadow-card">
+                <div class="w-12 h-12 bg-primary-200 rounded-full flex items-center justify-center text-primary-800 text-xl mb-6">
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                </div>
+                <h3 class="text-xl font-bold text-primary-900 mb-3">Учет техники и ТО</h3>
+                <p class="text-gray-600 text-sm mb-4">
+                    Статистика по каждой единице оборудования. Напоминания о тех. обслуживании. Вы будете знать, какой инструмент приносит прибыль, а какой — убытки.
+                </p>
+                <div class="text-xs text-primary-600 font-bold uppercase tracking-wider mt-auto">
+                    <i class="fa-solid fa-bell"></i> Уведомления о ТО и поломках
+                </div>
+            </div>
+
+            <!-- Feature 3: AI Search (Large) -->
+            <div class="bg-primary-900 rounded-2xl p-8 text-white col-span-3 flex items-center gap-8 relative overflow-hidden">
+                <!-- Decor -->
+                <div class="absolute top-0 right-0 w-96 h-96 bg-primary-600 rounded-full blur-[100px] opacity-30 translate-x-1/3 -translate-y-1/3"></div>
+
+                <div class="w-1/2 relative z-10">
+                    <div class="inline-block bg-primary-700 px-3 py-1 rounded text-xs font-bold mb-4 text-primary-100 border border-primary-600">NEW</div>
+                    <h3 class="text-2xl font-bold mb-4">Искусственный интеллект</h3>
+                    <p class="text-primary-100 text-sm leading-relaxed mb-6 w-4/5">
+                        Умный поиск находит данные по обрывкам фраз. ИИ строит прогнозы спроса и отчеты на естественном языке. Просто напишите: "Сколько мы заработали на мотобурах в прошлом месяце?"
+                    </p>
+                    <a href="#" class="text-white font-bold text-sm border-b border-white/30 pb-1 hover:border-white transition">Смотреть видео о функции</a>
+                </div>
+                <div class="w-1/2 bg-gray-800 rounded-xl p-4 border border-gray-700 font-mono text-xs text-green-400 shadow-2xl">
+                    <div class="mb-2 text-gray-500">> Ввод запроса...</div>
+                    <div class="mb-3">"Покажи топ 3 самых прибыльных инструмента за неделю"</div>
+                    <div class="text-primary-300 mb-1">> Анализирую базу данных... [Done]</div>
+                    <div class="space-y-1 pl-4 border-l-2 border-gray-600 mt-2">
+                        <div class="flex justify-between"><span>1. Мотобур Champion</span><span>15 000₽</span></div>
+                        <div class="flex justify-between"><span>2. Нивелир BOSCH</span><span>8 200₽</span></div>
+                        <div class="flex justify-between"><span>3. Насос SKIPER</span><span>6 500₽</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature 4: Migration -->
+            <div class="bg-white rounded-2xl p-8 border border-primary-100 feature-card-hover transition duration-300 shadow-card col-span-3 text-center">
+                <h3 class="text-lg font-bold text-primary-900 mb-2">Миграция за 1 день</h3>
+                <p class="text-gray-600 text-sm max-w-2xl mx-auto">
+                    Помощь при переносе базы клиентов и оборудования из Excel, Google Таблиц или другой CRM. Мы подготовили скрипты импорта, чтобы вы не теряли историю заказов.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section id="screens-slider" class="px-12 py-28 bg-white">
+
+        <div class="text-center max-w-3xl mx-auto mb-20">
+            <h2 class="text-3xl font-bold text-primary-900 mb-4">Все экраны программы</h2>
+            <p class="text-gray-600">Переключайтесь между разделами и изучайте функционал приложения</p>
+        </div>
+
+        <!-- MAIN SLIDER -->
+        <div class="swiper mainSwiper max-w-6xl mx-auto mb-10">
+            <div class="swiper-wrapper">
+
+                <!-- Slide 1 -->
+                <div class="swiper-slide">
+                    <img src="1.png"
+                         class="rounded-xl shadow-2xl border border-gray-200 w-full">
+                </div>
+                <!-- Slide 2 -->
+                <div class="swiper-slide">
+                    <img src="2.png"
+                         class="rounded-xl shadow-2xl border border-gray-200 w-full">
+                </div>
+                <!-- Empty slots for future screenshots -->
+                <div class="swiper-slide">
+                    <img src="3.png"
+                         class="rounded-xl shadow-2xl border border-gray-200 w-full">
+                </div>
+                <div class="swiper-slide">
+                    <img src="4.png"
+                         class="rounded-xl shadow-2xl border border-gray-200 w-full">
+                </div>
+                <div class="swiper-slide">
+                    <img src="5.png"
+                         class="rounded-xl shadow-2xl border border-gray-200 w-full">
+                </div>
+                <div class="swiper-slide">
+                    <img src="6.png"
+                         class="rounded-xl shadow-2xl border border-gray-200 w-full">
+                </div>
+            </div>
+
+            <!-- Arrows -->
+            <div class="swiper-button-next !text-green-600"></div>
+            <div class="swiper-button-prev !text-green-600"></div>
+        </div>
+
+        <!-- THUMBNAILS -->
+        <div class="swiper thumbsSwiper max-w-5xl mx-auto">
+            <div class="swiper-wrapper">
+
+                <!-- thumb 1 -->
+                <div class="swiper-slide !w-40 !h-24 !cursor-pointer">
+                    <img src="1.png"
+                         class="w-full h-full object-cover rounded-lg border border-gray-300">
+                </div>
+
+                <!-- thumb 2 -->
+                <div class="swiper-slide !w-40 !h-24 !cursor-pointer">
+                    <img src="2.png"
+                         class="w-full h-full object-cover rounded-lg border border-gray-300">
+                </div>
+
+                <!-- thumb 2 -->
+                <div class="swiper-slide !w-40 !h-24 !cursor-pointer">
+                    <img src="3.png"
+                         class="w-full h-full object-cover rounded-lg border border-gray-300">
+                </div>
+
+                <!-- thumb 2 -->
+                <div class="swiper-slide !w-40 !h-24 !cursor-pointer">
+                    <img src="4.png"
+                         class="w-full h-full object-cover rounded-lg border border-gray-300">
+                </div>
+
+                <!-- thumb 2 -->
+                <div class="swiper-slide !w-40 !h-24 !cursor-pointer">
+                    <img src="5.png"
+                         class="w-full h-full object-cover rounded-lg border border-gray-300">
+                </div>
+
+                <!-- thumb 2 -->
+                <div class="swiper-slide !w-40 !h-24 !cursor-pointer">
+                    <img src="6.png"
+                         class="w-full h-full object-cover rounded-lg border border-gray-300">
+                </div>
+
+            </div>
+        </div>
+
+    </section>
+
+    <!-- Pricing Plans -->
+    <section id="pricing" class="px-16 py-20 bg-primary-50/50">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl font-bold text-primary-900 mb-4">Прозрачные тарифы</h2>
+            <p class="text-gray-600">Единоразовый платеж за лицензию на выбранный срок</p>
+        </div>
+
+        <div class="grid grid-cols-3 gap-8 max-w-6xl mx-auto items-end">
+            <!-- Month -->
+            <div class="bg-white p-8 rounded-2xl border border-primary-100 shadow-sm hover:shadow-md transition">
+                <h3 class="text-lg font-bold text-gray-500">На месяц</h3>
+                <div class="my-4">
+                    <span class="text-4xl font-bold text-primary-900">1 990₽</span>
+                </div>
+                <p class="text-sm text-gray-500 mb-6">Идеально для старта и теста возможностей</p>
+                <button class="w-full py-3 border-2 border-primary-100 text-primary-700 font-bold rounded-xl hover:border-primary-500 hover:text-primary-600 transition">Купить</button>
+            </div>
+
+            <!-- 6 Months (Highlighted) -->
+            <div class="bg-gradient-to-b from-primary-600 to-primary-700 p-1 text-white rounded-2xl shadow-2xl shadow-blue-glow transform scale-105 relative z-10">
+                <div class="bg-primary-600 p-8 rounded-xl h-full flex flex-col">
+                    <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary-800 text-white px-4 py-1 rounded-full text-xs font-bold uppercase border border-primary-500">Выбор клиентов</div>
+                    <h3 class="text-lg font-bold text-primary-100">На полгода</h3>
+                    <div class="my-4">
+                        <span class="text-5xl font-bold">9 900₽</span>
+                        <span class="block text-sm text-primary-200 line-through mt-1">11 940₽</span>
+                    </div>
+                    <p class="text-sm text-primary-100 opacity-90 mb-6">Оптимально для сезонного бизнеса</p>
+
+                    <ul class="space-y-3 mb-8 text-sm font-medium">
+                        <li class="flex items-center gap-3"><i class="fa-solid fa-check-circle text-primary-200"></i> Полный функционал</li>
+                        <li class="flex items-center gap-3"><i class="fa-solid fa-check-circle text-primary-200"></i> Помощь в настройке</li>
+                        <li class="flex items-center gap-3"><i class="fa-solid fa-check-circle text-primary-200"></i> Приоритетная поддержка</li>
+                    </ul>
+
+                    <button class="w-full py-4 bg-white text-primary-700 font-bold rounded-xl hover:bg-primary-50 transition mt-auto">Купить сейчас</button>
+                </div>
+            </div>
+
+            <!-- Year -->
+            <div class="bg-white p-8 rounded-2xl border border-primary-100 shadow-sm hover:shadow-md transition">
+                <h3 class="text-lg font-bold text-gray-500">На год</h3>
+                <div class="my-4">
+                    <span class="text-4xl font-bold text-primary-900">17 900₽</span>
+                    <span class="block text-sm text-primary-500 font-bold mt-1">Экономия 25%</span>
+                </div>
+                <p class="text-sm text-gray-500 mb-6">Для стабильного бизнеса</p>
+                <button class="w-full py-3 border-2 border-primary-100 text-primary-700 font-bold rounded-xl hover:border-primary-500 hover:text-primary-600 transition">Купить</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- About & Contacts -->
+    <section id="contacts" class="px-16 py-24 bg-white">
+        <div class="grid grid-cols-2 gap-20">
+
+            <!-- Owner Info -->
+            <div>
+                <div class="inline-block px-3 py-1 bg-primary-100 text-primary-800 rounded-full text-xs font-bold mb-6">О НАС</div>
+                <h2 class="text-4xl font-bold text-primary-900 mb-6">Поддержка от практика,<br>а не робота</h2>
+                <p class="text-gray-600 mb-8 text-lg leading-relaxed">
+                    Меня зовут Александр, я владею прокатом строительного оборудования уже 7 лет. Я написал эту программу, потому что устал от Excel и сложных дорогих CRM. Я знаю ваши боли и готов помочь с внедрением.
+                </p>
+
+                <div class="flex items-center gap-4 mb-8">
+                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80" alt="Owner" class="w-16 h-16 rounded-full object-cover border-2 border-primary-500 p-1">
+                    <div>
+                        <div class="font-bold text-primary-900">Александр Волков</div>
+                        <div class="text-sm text-primary-600">Разработчик RentalFlow</div>
+                    </div>
+                </div>
+
+                <div class="flex gap-4">
+                    <a href="#" class="flex items-center gap-2 bg-blue-500 text-white px-5 py-3 rounded-lg font-medium hover:bg-blue-600 transition">
+                        <i class="fa-brands fa-telegram"></i> Telegram
+                    </a>
+                    <a href="#" class="flex items-center gap-2 bg-green-500 text-white px-5 py-3 rounded-lg font-medium hover:bg-green-600 transition">
+                        <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                    </a>
+                </div>
+            </div>
+
+            <!-- Chat Widget Simulation -->
+            <div class="bg-white rounded-2xl shadow-2xl border border-primary-100 overflow-hidden flex flex-col h-[450px]">
+                <!-- Chat Header -->
+                <div class="bg-primary-600 p-4 flex items-center justify-between text-white">
+                    <div class="flex items-center gap-3">
+                        <div class="relative">
+                            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" class="w-10 h-10 rounded-full object-cover border-2 border-primary-400">
+                            <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-primary-600 rounded-full"></div>
+                        </div>
+                        <div>
+                            <div class="font-bold text-sm">Техподдержка</div>
+                            <div class="text-xs text-primary-200">Онлайн</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Body -->
+                <div class="flex-1 bg-gray-50 p-6 chat-area overflow-y-auto space-y-4">
+                    <div class="flex justify-center">
+                        <span class="text-xs text-gray-400 bg-gray-200 px-2 py-1 rounded">Сегодня</span>
+                    </div>
+
+                    <!-- Message Received -->
+                    <div class="flex items-end gap-2">
+                        <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-xs shrink-0"><i class="fa-solid fa-headset"></i></div>
+                        <div class="bg-white p-3 rounded-2xl rounded-bl-none border border-gray-200 shadow-sm text-sm text-gray-700 max-w-[80%]">
+                            Добрый день! Если у вас возникнут вопросы при установке RentalFlow на Windows — пишите сюда.
+                        </div>
+                    </div>
+
+                    <!-- Message Sent -->
+                    <div class="flex items-end gap-2 justify-end">
+                        <div class="bg-primary-600 p-3 rounded-2xl rounded-br-none text-sm text-white max-w-[80%] shadow-md">
+                            Здравствуйте! А как перенести базу из Экселя?
+                        </div>
+                    </div>
+
+                    <!-- Message Received -->
+                    <div class="flex items-end gap-2">
+                        <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-xs shrink-0"><i class="fa-solid fa-headset"></i></div>
+                        <div class="bg-white p-3 rounded-2xl rounded-bl-none border border-gray-200 shadow-sm text-sm text-gray-700 max-w-[80%]">
+                            Это просто! В меню "Настройки" есть кнопка "Импорт". Вы просто загружаете файл, а система сама распределяет колонки. 👌
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Area -->
+                <div class="p-4 bg-white border-t border-gray-100">
+                    <div class="relative">
+                        <input type="text" placeholder="Напишите сообщение..." disabled class="w-full bg-gray-100 border-0 rounded-full py-3 px-5 text-sm focus:ring-2 focus:ring-primary-300 outline-none">
+                        <button class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center hover:bg-primary-600 transition">
+                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-primary-900 text-primary-100 py-12 px-16">
+        <div class="flex justify-between items-start border-b border-primary-800 pb-8 mb-8">
+            <div>
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-6 h-6 bg-primary-500 rounded flex items-center justify-center text-white text-xs">
+                        <i class="fa-solid fa-cogs"></i>
+                    </div>
+                    <span class="text-xl font-bold text-white">RentalFlow</span>
+                </div>
+                <p class="text-sm text-primary-300 max-w-xs">
+                    Профессиональное ПО для автоматизации прокатного бизнеса.
+                </p>
+            </div>
+            <div class="space-y-2 text-sm text-right">
+                <a href="#" class="block hover:text-white">Политика конфиденциальности</a>
+                <a href="#" class="block hover:text-white">Договор оферты</a>
+                <a href="#" class="block hover:text-white">Руководство пользователя</a>
+            </div>
+        </div>
+        <div class="text-center text-xs text-primary-400">
+            © 2023 RentalFlow. All rights reserved. Windows is a trademark of Microsoft Corp.
+        </div>
+    </footer>
+
+</div>
+
+<!-- Chart Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var chartDom = document.getElementById('revenueChart');
+        var myChart = echarts.init(chartDom);
+        var option;
+
+        option = {
+            grid: { top: 5, bottom: 5, left: 0, right: 0 },
+            xAxis: {
+                type: 'category',
+                show: false,
+                boundaryGap: false,
+                data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+            },
+            yAxis: {
+                type: 'value',
+                show: false
+            },
+            series: [
+                {
+                    data: [820, 932, 901, 1200, 1290, 1450, 1600],
+                    type: 'line',
+                    smooth: true,
+                    showSymbol: false,
+                    lineStyle: {
+                        color: '#4CAF50', // Accent 500
+                        width: 3
+                    },
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: 'rgba(76, 175, 80, 0.3)' }, // Accent 500 faded
+                            { offset: 1, color: 'rgba(76, 175, 80, 0)' }
+                        ])
+                    }
+                }
+            ]
+        };
+
+        myChart.setOption(option);
+
+        // Resize chart on window resize
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+    });
+
+    // Navigation functions
+    function toggleMenu() {
+        const nav = document.getElementById('main-nav');
+        nav.classList.toggle('active');
+    }
+
+    function closeMenu() {
+        const nav = document.getElementById('main-nav');
+        nav.classList.remove('active');
+    }
+
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Smooth scroll for navigation links
+    document.querySelectorAll('nav a').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            const targetId = this.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+
+            if (targetElement) {
+                window.scrollTo({
+                    top: targetElement.offsetTop - 70, // Adjust for fixed header
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+</script>
+
+<!-- Script for Chart -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var chartDom = document.getElementById('miniChart');
+        var myChart = echarts.init(chartDom);
+        var option;
+
+        option = {
+            animation: false,
+            grid: { top: 5, bottom: 5, left: 0, right: 0 },
+            xAxis: {
+                type: 'category',
+                data: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+                show: false
+            },
+            yAxis: {
+                type: 'value',
+                show: false
+            },
+            series: [
+                {
+                    data: [820, 932, 901, 934, 1290, 1330, 1320],
+                    type: 'line',
+                    smooth: true,
+                    symbol: 'none',
+                    lineStyle: {
+                        color: '#3b82f6',
+                        width: 3
+                    },
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: 'rgba(59, 130, 246, 0.3)' },
+                            { offset: 1, color: 'rgba(59, 130, 246, 0.0)' }
+                        ])
+                    }
+                }
+            ]
+        };
+
+        myChart.setOption(option);
+    });
+</script>
+
+<script>
+    var swiper = new Swiper(".mySwiper", {
+        spaceBetween: 40,
+        centeredSlides: true,
+        loop: true,
+        autoplay: {
+            delay: 3500,
+            disableOnInteraction: false,
+        },
+        pagination: {
+            el: ".swiper-pagination",
+            clickable: true,
+        },
+        navigation: {
+            nextEl: ".swiper-button-next",
+            prevEl: ".swiper-button-prev",
+        },
+        slidesPerView: 1.3,          // красиво видны края соседних
+        grabCursor: true,
+        speed: 800,
+    });
+</script>
+
+<script>
+    // Thumbnails slider
+    var thumbsSwiper = new Swiper(".thumbsSwiper", {
+        spaceBetween: 10,
+        slidesPerView: "auto",
+        freeMode: true,
+        watchSlidesProgress: true,
+    });
+
+    // Main slider
+    var mainSwiper = new Swiper(".mainSwiper", {
+        spaceBetween: 40,
+        centeredSlides: true,
+        loop: true,
+        speed: 800,
+        grabCursor: true,
+
+        autoplay: {
+            delay: 3500,
+            disableOnInteraction: false,
+        },
+
+        navigation: {
+            nextEl: ".swiper-button-next",
+            prevEl: ".swiper-button-prev",
+        },
+
+        thumbs: {
+            swiper: thumbsSwiper,
+        },
+    });
+</script>
+
+</body>
+</html>
